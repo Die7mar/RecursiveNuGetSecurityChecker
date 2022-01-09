@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,7 +28,7 @@ namespace RecursiveNuGetSecurityChecker
         public NugetCheckerResult Check()
         {
             NugetCheckerResult result = new NugetCheckerResult();
-            startCmdCommandAndGetOutput("cmd.exe", $"/C dotnet list \"{PathToCsproj}\" package --vulnerable");
+            StartCommand();
 
             result.ProjectName = Path.GetFileName(PathToCsproj).Replace(".csproj", "");
             result.ProjectPath = Path.GetDirectoryName(PathToCsproj);
@@ -53,6 +54,19 @@ namespace RecursiveNuGetSecurityChecker
             }
 
             return output;
+        }
+
+        private void StartCommand()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                startCmdCommandAndGetOutput("dotnet", $"list \"{PathToCsproj}\" package --vulnerable");
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                startCmdCommandAndGetOutput("cmd.exe", $"/C dotnet list \"{PathToCsproj}\" package --vulnerable");
+            }
         }
 
         private void startCmdCommandAndGetOutput(string fileName, string command, bool windowHidden = true, string WorkingDirectory = "")
